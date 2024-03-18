@@ -46,6 +46,7 @@ router.get("/fetch_all_filters", async (req, res) => {
   try {
     const filters = await fetchAllFilters();
     res.json(filters);
+    // console.log(filters);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -56,6 +57,7 @@ async function fetchAllFilters() {
   const filters = {
     start_year: [],
     end_year: [],
+    impact: [],
     topic: [],
     sector: [],
     region: [],
@@ -70,6 +72,7 @@ async function fetchAllFilters() {
         _id: null,
         start_year: { $addToSet: "$start_year" },
         end_year: { $addToSet: "$end_year" },
+        impact: { $addToSet: "$impact" },
         topic: { $addToSet: "$topic" },
         sector: { $addToSet: "$sector" },
         region: { $addToSet: "$region" },
@@ -83,6 +86,7 @@ async function fetchAllFilters() {
         _id: 0,
         start_year: 1,
         end_year: 1,
+        impact: 1,
         topic: 1,
         sector: 1,
         region: 1,
