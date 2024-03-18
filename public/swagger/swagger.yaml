@@ -1,0 +1,203 @@
+swagger: "2.0"
+
+info:
+  description: "Server of Blackcoffer Assignment"
+  version: "2.0.0"
+  title: "Blackcoffer"
+  contact:
+    email: "rogerthatvksingh@gmail.com"
+host: "localhost:3000"
+
+schemes:
+  - http
+  - https
+
+tags:
+  - name: "data"
+    description: "Data Fetching Apis"
+
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+paths:
+  # Data
+  /data/fetch_all_events:
+    get:
+      operationId: "fetch_all_events"
+      summary: "Fetch All Datas"
+      tags:
+        - "data"
+      parameters:
+        - name: end_year
+          in: query
+          description: "Filter by end year"
+          required: false
+          type: integer
+      
+        - name: intensity
+          in: query
+          description: "Filter by intensity"
+          required: false
+          type: integer
+      
+        - name: sector
+          in: query
+          description: "Filter by sector"
+          required: false
+          type: string
+      
+        - name: topic
+          in: query
+          description: "Filter by topic"
+          required: false
+          type: string
+      
+        - name: region
+          in: query
+          description: "Filter by region"
+          required: false
+          type: string
+      
+        - name: pestle
+          in: query
+          description: "Filter by PESTLE"
+          required: false
+          type: string
+      
+        - name: source
+          in: query
+          description: "Filter by source"
+          required: false
+          type: string
+      
+        - name: country
+          in: query
+          description: "Filter by country"
+          required: false
+          type: string
+      
+      responses:
+        "200":
+          description: "Fetched successfully"
+          schema:
+            $ref: "#/definitions/Data"
+        "500":
+          description: Internal server error
+
+  /data/fetch_all_filters:
+    get:
+      operationId: "fetch_all_filters"
+      summary: "Fetch all filters"
+      tags:
+        - "data"
+      responses:
+        "200":
+          description: "Fetched successfully"
+          schema:
+            $ref: "#/definitions/Filters"
+        "500":
+          description: Internal server error
+    
+
+# start of definitions
+definitions:
+  Data:
+    type: array
+    items:
+      type: object
+      properties:
+        end_year:
+          type: integer
+          description: "The end year of the data."
+        intensity:
+          type: integer
+          description: "The intensity of the data."
+        sector:
+          type: string
+          description: "The sector of the data."
+        topic:
+          type: string
+          description: "The topic of the data."
+        insight:
+          type: string
+          description: "The insight provided."
+        url:
+          type: string
+          format: uri
+          description: "The URL associated with the data."
+        region:
+          type: string
+          description: "The region associated with the data."
+        start_year:
+          type: integer
+          description: "The start year of the data."
+        impact:
+          type: integer
+          description: "The impact of the data."
+        added:
+          type: string
+          format: date-time
+          description: "The date and time when the data was added."
+        published:
+          type: string
+          format: date-time
+          description: "The date and time when the data was published."
+        country:
+          type: string
+          description: "The country associated with the data."
+        relevance:
+          type: integer
+          description: "The relevance of the data."
+        pestle:
+          type: string
+          description: "The PESTLE category of the data."
+        source:
+          type: string
+          description: "The source of the data."
+        title:
+          type: string
+          description: "The title of the data."
+        likelihood:
+          type: integer
+          description: "The likelihood of the data."
+
+  Filters:
+    type: object
+    properties:
+      end_year:
+        type: array
+        items:
+          type: integer
+        example: []
+      topic:
+        type: array
+        items:
+          type: string
+        example: []
+      sector:
+        type: array
+        items:
+          type: string
+        example: []
+      region:
+        type: array
+        items:
+          type: string
+        example: []
+      pestle:
+        type: array
+        items:
+          type: string
+        example: []
+      source:
+        type: array
+        items:
+          type: string
+        example: []
+      country:
+        type: array
+        items:
+          type: string
+        example: []

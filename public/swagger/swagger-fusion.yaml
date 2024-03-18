@@ -1,0 +1,158 @@
+swagger: "2.0"
+
+info:
+  description: "SyncApi"
+  version: "1.0.1"
+  title: "Azmeel"
+  contact:
+    email: "sanket@blackcurrantapps.com"
+    name: "Sanket Berde"
+    url: "https://blackcurrantapps.com"
+
+host: "localhost:3000"
+
+schemes:
+  - http
+  - https
+
+tags:
+  - name: "fusion"
+    description: "Sync from oracle fusion to communicator tool"
+  
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+    
+    
+paths:
+# Fusion
+  /fusion/disbursement:
+    post:
+      operationId: "disbursement"
+      summary: "Create a new Disbursement"
+      description: |
+        This creates a batch of disbursement with individual creditor records. 
+        All currency fileds are assumed to be in `SAR only`.
+        If this server sends back any response other than 200, retry the request
+        Subsequent requests with the same `disbursementInfo.disbursementId` will fail if the previous one was successfull
+      tags:
+        - "fusion"
+      parameters:
+        - name: PSK
+          in: header
+          type: string
+          required: true
+          description: "Pre shared key between the two systems"
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            title: DisbursementBody
+            properties:
+              disbursementInfo:
+                type: object
+                title: DisbursementInfo
+                required:
+                  - disbursementId
+                  - initiatedBy
+                  - recordDate
+                properties:
+                  disbursementId:
+                    type: string
+                    description: "Unique ID of this disbursement that should be unique across API Calls."
+                  initiatedBy:
+                    type: string
+                    description: "The name of the user in oracle fusion who started this disbursement"
+                    example: "Sanket Berde"
+                  recordDate:
+                    type: integer
+                    description: "The record date for the disbursemt sent to creditors in this batch in unix epoch timestamp"
+                  subject:
+                    type: string
+                    maximum: 255
+                    description: "The subject or title under which this disbursement is released"
+                    example: "Q1 of 2023 | In ref to notice XYZ"
+              records:
+                type: array
+                items:
+                  title: CreditorDisbursementRecord
+                  type: object
+                  required:
+                    - oracleCreditorId
+                    - sukukDisbursed
+                    - profitOnSukuk
+                    - privateDebtDisbursed
+                    - profitOnPrivateDebt
+                    - totalDisbursed
+                    - cumilativeSukukDisbursed
+                    - cumilativeProfitOnSukuk
+                    - cumilativePrivateDebtDisbursed
+                    - cumilativeProfitOnPrivateDebt
+                    - cumilativeTotalDisbursed
+                    - outstandingSukukAmount
+                    - outstandingPrivateDebtAmount
+                    - outstandingTotalAmount
+                    - txnDate
+                    - txnAmount
+                  properties:
+                    oracleCreditorId:
+                      type: string
+                      description: "Unique ID of the creditor in the oracle system"
+                      example: "1234567890"
+                    email:
+                      type: string
+                      description: "The email of the credior"
+                      example: "sanket@blackcurrantapps.com"
+                    sukukDisbursed:
+                      type: number
+                      example: 9200
+                    profitOnSukuk:
+                      type: number
+                      example: 119.6
+                    privateDebtDisbursed:
+                      type: number
+                      example: 800
+                    profitOnPrivateDebt:
+                      type: number
+                      example: 40
+                    totalDisbursed:
+                      type: number
+                      example: 10000
+                      description: "this is the amount that needs to be offset from the total outstanding of the creditor."
+                    cumilativeSukukDisbursed:
+                      type: number
+                      example: 92000
+                    cumilativeProfitOnSukuk:
+                      type: number
+                      example: 1196
+                    cumilativePrivateDebtDisbursed:
+                      type: number
+                      example: 8000
+                    cumilativeProfitOnPrivateDebt:
+                      type: number
+                      example: 400
+                    cumilativeTotalDisbursed:
+                      type: number
+                      example: 100000
+                    outstandingSukukAmount:
+                      type: number
+                      example: 184000
+                    outstandingPrivateDebtAmount:
+                      type: number
+                      example: 16000
+                    outstandingTotalAmount:
+                      type: number
+                      example: 200000
+                    txnDate:
+                      type: integer
+                      description: "The record date for the disbursemt sent to this creditor in unix epoch timestamp"
+                    txnAmount:
+                      type: number
+                      example: 10159.6
+                      description: "sukukDisbursed + profitOnSukuk + privateDebtDisbursed + profitOnPrivateDebt"
+      responses:
+        200:
+          description: Ok
+      
