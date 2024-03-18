@@ -3,19 +3,6 @@ import { DataModel } from "../model/data.js";
 
 const router = Router();
 
-/*
---> Filters to be added: 
-Add end year filter in the dashboard ✅
-Add topics filters in the dashboard ✅
-Add sector filter in the dashboard ✅
-Add region filter in the dashboard ✅
-Add PEST filter in the dashboard ✅
-Add Source filter in the dashboard ✅
-Country ✅
-Add SWOT filter in the dashboard 
-City 
-*/
-
 router.get("/fetch_all_events", async (req, res) => {
   try {
     let query = {};
@@ -59,7 +46,6 @@ router.get("/fetch_all_filters", async (req, res) => {
   try {
     const filters = await fetchAllFilters();
     res.json(filters);
-    console.log(`Filters sent!`);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -68,6 +54,7 @@ router.get("/fetch_all_filters", async (req, res) => {
 
 async function fetchAllFilters() {
   const filters = {
+    start_year: [],
     end_year: [],
     topic: [],
     sector: [],
@@ -81,6 +68,7 @@ async function fetchAllFilters() {
     {
       $group: {
         _id: null,
+        start_year: { $addToSet: "$start_year" },
         end_year: { $addToSet: "$end_year" },
         topic: { $addToSet: "$topic" },
         sector: { $addToSet: "$sector" },
@@ -93,6 +81,7 @@ async function fetchAllFilters() {
     {
       $project: {
         _id: 0,
+        start_year: 1,
         end_year: 1,
         topic: 1,
         sector: 1,
@@ -105,15 +94,41 @@ async function fetchAllFilters() {
   ]);
 
   Object.keys(filters).forEach((key) => {
-    filters[key] = distinctValues[0][key]
+    let distinctValuesForKey = distinctValues[0][key]
       .flat()
-      .filter((value) => value !== null)
-      .sort((a, b) => {
+      .filter((value) => value !== null && value !== "");
+
+    if (
+      key === "start_year" ||
+      key === "end_year" ||
+      key === "topic" ||
+      key === "sector" ||
+      key === "source" ||
+      key === "pestle" ||
+      key === "region" ||
+      key === "country"
+    ) {
+      filters[key] = distinctValuesForKey
+        .map((value) => {
+          if (typeof value === "string") {
+            return { name: value && value[0].toUpperCase() + value.slice(1) };
+          }
+          return { name: value };
+        })
+        .sort((a, b) => {
+          if (typeof a.name === "string" && typeof b.name === "string") {
+            return a.name.localeCompare(b.name);
+          }
+          return a.name - b.name;
+        });
+    } else {
+      filters[key] = distinctValuesForKey.sort((a, b) => {
         if (typeof a === "string" && typeof b === "string") {
           return a.localeCompare(b);
         }
         return a - b;
       });
+    }
   });
   return filters;
 }
