@@ -29,6 +29,9 @@ router.get("/fetch_all_events", async (req, res) => {
     if (req.query.source) {
       query.source = req.query.source;
     }
+    if (req.query.country) {
+      query.country = req.query.country;
+    }
     if (req.query.relevance) {
       query.relevance = parseInt(req.query.relevance);
     }
@@ -46,7 +49,6 @@ router.get("/fetch_all_filters", async (req, res) => {
   try {
     const filters = await fetchAllFilters();
     res.json(filters);
-    // console.log(filters);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -58,6 +60,7 @@ async function fetchAllFilters() {
     start_year: [],
     end_year: [],
     impact: [],
+    intensity: [],
     topic: [],
     sector: [],
     region: [],
@@ -73,6 +76,7 @@ async function fetchAllFilters() {
         start_year: { $addToSet: "$start_year" },
         end_year: { $addToSet: "$end_year" },
         impact: { $addToSet: "$impact" },
+        intensity: { $addToSet: "$intensity" },
         topic: { $addToSet: "$topic" },
         sector: { $addToSet: "$sector" },
         region: { $addToSet: "$region" },
@@ -87,6 +91,7 @@ async function fetchAllFilters() {
         start_year: 1,
         end_year: 1,
         impact: 1,
+        intensity: 1,
         topic: 1,
         sector: 1,
         region: 1,
@@ -106,6 +111,8 @@ async function fetchAllFilters() {
       key === "start_year" ||
       key === "end_year" ||
       key === "topic" ||
+      key === "impact" ||
+      key === "intensity" ||
       key === "sector" ||
       key === "source" ||
       key === "pestle" ||
@@ -136,5 +143,63 @@ async function fetchAllFilters() {
   });
   return filters;
 }
+
+router.get("/stacked_bar_chart_data", async (req, res) => {
+  try {
+    const dataArray = await DataModel.find(
+      { impact: { $ne: null }, country: { $ne: "" } },
+      "country impact intensity"
+    );
+
+    const transformedData = [];
+
+    // Group data by country
+    const groupedData = dataArray.reduce((acc, entry) => {
+      acc[entry.country] = acc[entry.country] || [];
+      acc[entry.country].push(entry);
+      return acc;
+    }, {});
+
+    const impactMap = {
+      2: "Low",
+      3: "Low",
+      4: "High",
+    };
+
+    for (const country in groupedData) {
+      const countryData = groupedData[country];
+      const series = [];
+
+      for (const impactLevel in impactMap) {
+        const impactData = countryData.filter(
+          (entry) => entry.impact === parseInt(impactLevel)
+        );
+        impactData.forEach((entry) => {
+          const existingSeries = series.find(
+            (item) =>
+              item.name === impactMap[impactLevel] &&
+              item.value === entry.intensity
+          );
+          if (!existingSeries) {
+            series.push({
+              name: impactMap[impactLevel],
+              value: entry.intensity,
+            });
+          }
+        });
+      }
+
+      const truncatedCountry = country.split(" ").slice(0, 2).join(" ");
+
+      transformedData.push({ name: truncatedCountry, series });
+    }
+
+    res.json(transformedData);
+
+    // console.log(transformedData);
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 export { router as dataRouter };
