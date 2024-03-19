@@ -1,9 +1,9 @@
 swagger: "2.0"
 
 info:
-  description: "Server of Blackcoffer Assignment"
+  description: "Backend server defining RESTful APIs of Blackcoffer Frontend"
   version: "2.0.0"
-  title: "Blackcoffer"
+  title: "Blackcoffer Assignment"
   contact:
     email: "rogerthatvksingh@gmail.com"
 host: "localhost:3000"
@@ -30,54 +30,15 @@ paths:
       tags:
         - "data"
       parameters:
-        - name: end_year
-          in: query
-          description: "Filter by end year"
-          required: false
-          type: integer
-      
-        - name: intensity
-          in: query
-          description: "Filter by intensity"
-          required: false
-          type: integer
-      
-        - name: sector
-          in: query
-          description: "Filter by sector"
-          required: false
-          type: string
-      
-        - name: topic
-          in: query
-          description: "Filter by topic"
-          required: false
-          type: string
-      
-        - name: region
-          in: query
-          description: "Filter by region"
-          required: false
-          type: string
-      
-        - name: pestle
-          in: query
-          description: "Filter by PESTLE"
-          required: false
-          type: string
-      
-        - name: source
-          in: query
-          description: "Filter by source"
-          required: false
-          type: string
-      
-        - name: country
-          in: query
-          description: "Filter by country"
-          required: false
-          type: string
-      
+        - $ref: "#/parameters/startYear"
+        - $ref: "#/parameters/endYear"
+        - $ref: "#/parameters/intensity"
+        - $ref: "#/parameters/sector"
+        - $ref: "#/parameters/topic"
+        - $ref: "#/parameters/region"
+        - $ref: "#/parameters/pestle"
+        - $ref: "#/parameters/source"
+        - $ref: "#/parameters/country"
       responses:
         "200":
           description: "Fetched successfully"
@@ -89,7 +50,7 @@ paths:
   /data/fetch_all_filters:
     get:
       operationId: "fetch_all_filters"
-      summary: "Fetch all filters"
+      summary: "Fetch All Unique Filters"
       tags:
         - "data"
       responses:
@@ -99,10 +60,226 @@ paths:
             $ref: "#/definitions/Filters"
         "500":
           description: Internal server error
-    
+          
+  /data/stacked_bar_chart_data:
+    get:
+      operationId: "stacked_bar_chart_data"
+      summary: "Get data for stacked bar chart"
+      tags:
+        - "data"
+      parameters:
+        - $ref: "#/parameters/startYear"
+        - $ref: "#/parameters/endYear"
+        - $ref: "#/parameters/intensity"
+        - $ref: "#/parameters/sector"
+        - $ref: "#/parameters/topic"
+        - $ref: "#/parameters/region"
+        - $ref: "#/parameters/pestle"
+        - $ref: "#/parameters/source"
+        - $ref: "#/parameters/country"
+      responses:
+        "200":
+          description: "Fetched successfully"
+          schema:
+            $ref: "#/definitions/StackedBarChartData"
+        "500":
+          description: Internal server error
+  
+  /data/line_chart_data:
+    get:
+      operationId: "line_chart_data"
+      summary: "Get data for line chart"
+      tags:
+        - "data"
+      parameters:
+        - $ref: "#/parameters/startYear"
+        - $ref: "#/parameters/endYear"
+        - $ref: "#/parameters/intensity"
+        - $ref: "#/parameters/sector"
+        - $ref: "#/parameters/topic"
+        - $ref: "#/parameters/region"
+        - $ref: "#/parameters/pestle"
+        - $ref: "#/parameters/source"
+        - $ref: "#/parameters/country"
+      responses:
+        "200":
+          description: "Fetched successfully"
+          schema:
+            $ref: "#/definitions/LineChartData"
+        "500":
+          description: Internal server error
+  
+  /data/pie_chart_data:
+    get:
+      operationId: "pie_chart_data"
+      summary: "Get data for pie chart"
+      tags:
+        - "data"
+      parameters:
+        - $ref: "#/parameters/startYear"
+        - $ref: "#/parameters/endYear"
+        - $ref: "#/parameters/intensity"
+        - $ref: "#/parameters/sector"
+        - $ref: "#/parameters/topic"
+        - $ref: "#/parameters/region"
+        - $ref: "#/parameters/pestle"
+        - $ref: "#/parameters/source"
+        - $ref: "#/parameters/country"
+      responses:
+        "200":
+          description: "Fetched successfully"
+          schema:
+            $ref: "#/definitions/PieChartData"
+        "500":
+          description: Internal server error
+  
+  /data/vertical_bar_chart_data:
+    get:
+      operationId: "vertical_bar_chart_data"
+      summary: "Get data for vertical bar chart"
+      tags:
+        - "data"
+      parameters:
+        - $ref: "#/parameters/startYear"
+        - $ref: "#/parameters/endYear"
+        - $ref: "#/parameters/intensity"
+        - $ref: "#/parameters/sector"
+        - $ref: "#/parameters/topic"
+        - $ref: "#/parameters/region"
+        - $ref: "#/parameters/pestle"
+        - $ref: "#/parameters/source"
+        - $ref: "#/parameters/country"
+      responses:
+        "200":
+          description: "Fetched successfully"
+          schema:
+            $ref: "#/definitions/VerticalBarChartData"
+        "500":
+          description: Internal server error
+
+parameters:
+   startYear:
+      name: start_year
+      in: query
+      description: "Filter by start year"
+      required: false
+      type: integer
+   endYear:
+      name: end_year
+      in: query
+      description: "Filter by end year"
+      required: false
+      type: integer
+   intensity:
+      name: intensity
+      in: query
+      description: "Filter by intensity"
+      required: false
+      type: integer
+   sector:
+      name: sector
+      in: query
+      description: "Filter by sector"
+      required: false
+      type: string
+   topic:
+      name: topic
+      in: query
+      description: "Filter by topic"
+      required: false
+      type: string
+   region:
+      name: region
+      in: query
+      description: "Filter by region"
+      required: false
+      type: string
+   pestle:
+      name: pestle
+      in: query
+      description: "Filter by PESTLE"
+      required: false
+      type: string
+   source:
+      name: source
+      in: query
+      description: "Filter by source"
+      required: false
+      type: string
+   country:
+      name: country
+      in: query
+      description: "Filter by country"
+      required: false
+      type: string
 
 # start of definitions
 definitions:
+  LineChartData:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the series (e.g., "Social", "Lifestyles")
+      series:
+        type: array
+        items:
+          $ref: '#/definitions/LineSeriesItem'
+
+  LineSeriesItem:
+    type: object
+    properties:
+      value:
+        type: integer
+        description: The numerical value for the data point
+      name:
+        type: string
+        description: The timestamp associated with the data point
+  
+  StackedBarChartData:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the country
+      series:
+        type: array
+        items:
+          $ref: '#/definitions/StackedSeriesData'
+
+  StackedSeriesData:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The category name (e.g., "Low", "High")
+      value:
+        type: integer
+        description: The value associated with the category
+        
+  PieChartData:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the category or segment (e.g., "World", "Northern America")
+      value:
+        type: integer
+        description: The numerical value or size of the category or segment
+      extra:
+        type: object
+        description: Additional properties associated with the category or segment
+        
+  VerticalBarChartData:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name or label of the category or bar (e.g., "Oil", "Gas")
+      value:
+        type: integer
+        description: The numerical value or height of the bar
+        
   Data:
     type: array
     items:

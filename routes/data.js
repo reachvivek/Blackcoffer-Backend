@@ -3,6 +3,10 @@ import { DataModel } from "../model/data.js";
 
 const router = Router();
 
+function capitalizeFirstCharacter(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 async function fetchAllFilters() {
   const filters = {
     start_year: [],
@@ -148,6 +152,8 @@ router.get("/fetch_all_filters", async (req, res) => {
   }
 });
 
+// Routes for Charts
+
 router.get("/stacked_bar_chart_data", async (req, res) => {
   try {
     const dataArray = await DataModel.find(
@@ -245,6 +251,72 @@ router.get("/line_chart_data", async (req, res) => {
     res.json(transformedData);
 
     // console.log(transformedData);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.get("/pie_chart_data", async (req, res) => {
+  try {
+    const data = await DataModel.find(
+      { region: { $ne: "" }, likelihood: { $ne: null } },
+      "region likelihood relevance"
+    );
+
+    const groupedData = data.reduce((acc, curr) => {
+      if (!acc[curr.region]) {
+        acc[curr.region] = {
+          name: curr.region,
+          value: 0, // Initialize the value
+          extra: {}, // Optional: Include extra attributes if needed
+        };
+      }
+      // Sum the likelihood
+      acc[curr.region].value += curr.likelihood;
+      return acc;
+    }, {});
+
+    // Convert the grouped data into an array
+    const transformedData = Object.values(groupedData);
+
+    transformedData.sort((a, b) => b.value - a.value);
+
+    console.log(transformedData);
+
+    res.json(transformedData);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.get("/vertical_bar_chart_data", async (req, res) => {
+  try {
+    const responseData = await DataModel.find(
+      { topic: { $ne: "" }, relevance: { $ne: null } },
+      "topic relevance"
+    );
+
+    const aggregatedData = {};
+
+    responseData.forEach((entry) => {
+      const { topic, relevance } = entry;
+
+      if (aggregatedData.hasOwnProperty(topic)) {
+        aggregatedData[topic] += relevance;
+      } else {
+        aggregatedData[topic] = relevance;
+      }
+    });
+
+    const barChartData = Object.keys(aggregatedData).map((topic) => ({
+      name: capitalizeFirstCharacter(topic),
+      value: aggregatedData[topic],
+    }));
+
+    // Sort the array of objects based on relevance scores, if needed
+    barChartData.sort((a, b) => b.value - a.value);
+
+    res.json(barChartData);
   } catch (err) {
     console.log(err);
   }
