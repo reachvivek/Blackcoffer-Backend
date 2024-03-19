@@ -3,6 +3,44 @@ import { DataModel } from "../model/data.js";
 
 const router = Router();
 
+function generateQuery(req) {
+  let query = {};
+
+  // Add filters based on query parameters
+  if (req.query.start_year) {
+    query.start_year = parseInt(req.query.start_year);
+  }
+  if (req.query.end_year) {
+    query.end_year = parseInt(req.query.end_year);
+  }
+  if (req.query.intensity) {
+    query.intensity = parseInt(req.query.intensity);
+  }
+  if (req.query.topic) {
+    query.topic = req.query.topic;
+  }
+  if (req.query.sector) {
+    query.sector = req.query.sector;
+  }
+  if (req.query.region) {
+    query.region = req.query.region;
+  }
+  if (req.query.pestle) {
+    query.pestle = req.query.pestle;
+  }
+  if (req.query.source) {
+    query.source = req.query.source;
+  }
+  if (req.query.country) {
+    query.country = req.query.country;
+  }
+  if (req.query.relevance) {
+    query.relevance = parseInt(req.query.relevance);
+  }
+
+  return query;
+}
+
 function capitalizeFirstCharacter(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -101,38 +139,8 @@ async function fetchAllFilters() {
 
 router.get("/fetch_all_events", async (req, res) => {
   try {
-    let query = {};
+    const query = generateQuery(req);
 
-    // Add filters based on query parameters
-    if (req.query.end_year) {
-      query.end_year = parseInt(req.query.end_year);
-    }
-    if (req.query.intensity) {
-      query.intensity = parseInt(req.query.intensity);
-    }
-    if (req.query.topic) {
-      query.topic = req.query.topic;
-    }
-    if (req.query.sector) {
-      query.sector = req.query.sector;
-    }
-    if (req.query.region) {
-      query.region = req.query.region;
-    }
-    if (req.query.pestle) {
-      query.pestle = req.query.pestle;
-    }
-    if (req.query.source) {
-      query.source = req.query.source;
-    }
-    if (req.query.country) {
-      query.country = req.query.country;
-    }
-    if (req.query.relevance) {
-      query.relevance = parseInt(req.query.relevance);
-    }
-
-    console.log(req.query);
     const events = await DataModel.find(query);
     console.log(`Entries sent ${events.length}`);
     res.json(events);
@@ -157,7 +165,7 @@ router.get("/fetch_all_filters", async (req, res) => {
 router.get("/stacked_bar_chart_data", async (req, res) => {
   try {
     const dataArray = await DataModel.find(
-      { impact: { $ne: null }, country: { $ne: "" } },
+      { impact: { $ne: null }, country: { $ne: "" }, ...req.query },
       "country impact intensity"
     );
 
@@ -215,7 +223,12 @@ router.get("/stacked_bar_chart_data", async (req, res) => {
 router.get("/line_chart_data", async (req, res) => {
   try {
     const data = await DataModel.find(
-      { pestle: { $ne: "" }, intensity: { $ne: null }, added: { $ne: "" } },
+      {
+        pestle: { $ne: "" },
+        intensity: { $ne: null },
+        added: { $ne: "" },
+        ...req.query,
+      },
       "pestle added intensity"
     );
 
@@ -247,7 +260,7 @@ router.get("/line_chart_data", async (req, res) => {
       return acc;
     }, []);
 
-    console.log(groupedData);
+    // console.log(groupedData);
     res.json(transformedData);
 
     // console.log(transformedData);
@@ -259,7 +272,7 @@ router.get("/line_chart_data", async (req, res) => {
 router.get("/pie_chart_data", async (req, res) => {
   try {
     const data = await DataModel.find(
-      { region: { $ne: "" }, likelihood: { $ne: null } },
+      { region: { $ne: "" }, likelihood: { $ne: null }, ...req.query },
       "region likelihood relevance"
     );
 
@@ -281,7 +294,7 @@ router.get("/pie_chart_data", async (req, res) => {
 
     transformedData.sort((a, b) => b.value - a.value);
 
-    console.log(transformedData);
+    // console.log(transformedData);
 
     res.json(transformedData);
   } catch (err) {
@@ -292,7 +305,7 @@ router.get("/pie_chart_data", async (req, res) => {
 router.get("/vertical_bar_chart_data", async (req, res) => {
   try {
     const responseData = await DataModel.find(
-      { topic: { $ne: "" }, relevance: { $ne: null } },
+      { topic: { $ne: "" }, relevance: { $ne: null }, ...req.query },
       "topic relevance"
     );
 
