@@ -3,64 +3,13 @@ import { DataModel } from "../model/data.js";
 
 const router = Router();
 
-router.get("/fetch_all_events", async (req, res) => {
-  try {
-    let query = {};
-
-    // Add filters based on query parameters
-    if (req.query.end_year) {
-      query.end_year = parseInt(req.query.end_year);
-    }
-    if (req.query.intensity) {
-      query.intensity = parseInt(req.query.intensity);
-    }
-    if (req.query.topic) {
-      query.topic = req.query.topic;
-    }
-    if (req.query.sector) {
-      query.sector = req.query.sector;
-    }
-    if (req.query.region) {
-      query.region = req.query.region;
-    }
-    if (req.query.pestle) {
-      query.pestle = req.query.pestle;
-    }
-    if (req.query.source) {
-      query.source = req.query.source;
-    }
-    if (req.query.country) {
-      query.country = req.query.country;
-    }
-    if (req.query.relevance) {
-      query.relevance = parseInt(req.query.relevance);
-    }
-
-    const events = await DataModel.find(query);
-    console.log(`Entries sent ${events.length}`);
-    res.json(events);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.get("/fetch_all_filters", async (req, res) => {
-  try {
-    const filters = await fetchAllFilters();
-    res.json(filters);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
 async function fetchAllFilters() {
   const filters = {
     start_year: [],
     end_year: [],
     impact: [],
     intensity: [],
+    relevance: [],
     topic: [],
     sector: [],
     region: [],
@@ -77,6 +26,7 @@ async function fetchAllFilters() {
         end_year: { $addToSet: "$end_year" },
         impact: { $addToSet: "$impact" },
         intensity: { $addToSet: "$intensity" },
+        relevance: { $addToSet: "$relevance" },
         topic: { $addToSet: "$topic" },
         sector: { $addToSet: "$sector" },
         region: { $addToSet: "$region" },
@@ -92,6 +42,7 @@ async function fetchAllFilters() {
         end_year: 1,
         impact: 1,
         intensity: 1,
+        relevance: 1,
         topic: 1,
         sector: 1,
         region: 1,
@@ -144,6 +95,59 @@ async function fetchAllFilters() {
   return filters;
 }
 
+router.get("/fetch_all_events", async (req, res) => {
+  try {
+    let query = {};
+
+    // Add filters based on query parameters
+    if (req.query.end_year) {
+      query.end_year = parseInt(req.query.end_year);
+    }
+    if (req.query.intensity) {
+      query.intensity = parseInt(req.query.intensity);
+    }
+    if (req.query.topic) {
+      query.topic = req.query.topic;
+    }
+    if (req.query.sector) {
+      query.sector = req.query.sector;
+    }
+    if (req.query.region) {
+      query.region = req.query.region;
+    }
+    if (req.query.pestle) {
+      query.pestle = req.query.pestle;
+    }
+    if (req.query.source) {
+      query.source = req.query.source;
+    }
+    if (req.query.country) {
+      query.country = req.query.country;
+    }
+    if (req.query.relevance) {
+      query.relevance = parseInt(req.query.relevance);
+    }
+
+    console.log(req.query);
+    const events = await DataModel.find(query);
+    console.log(`Entries sent ${events.length}`);
+    res.json(events);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/fetch_all_filters", async (req, res) => {
+  try {
+    const filters = await fetchAllFilters();
+    res.json(filters);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.get("/stacked_bar_chart_data", async (req, res) => {
   try {
     const dataArray = await DataModel.find(
@@ -194,6 +198,50 @@ router.get("/stacked_bar_chart_data", async (req, res) => {
       transformedData.push({ name: truncatedCountry, series });
     }
 
+    res.json(transformedData);
+
+    // console.log(transformedData);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.get("/line_chart_data", async (req, res) => {
+  try {
+    const data = await DataModel.find(
+      { pestle: { $ne: "" }, intensity: { $ne: null }, added: { $ne: "" } },
+      "pestle added intensity"
+    );
+
+    // Group data by country
+    const groupedData = data.reduce((acc, entry) => {
+      acc[entry.pestle] = acc[entry.pestle] || [];
+      acc[entry.pestle].push(entry);
+      return acc;
+    }, {});
+
+    const transformedData = data.reduce((acc, curr) => {
+      const existingIndex = acc.findIndex((item) => item.name === curr.pestle);
+      if (existingIndex !== -1) {
+        acc[existingIndex].series.push({
+          value: curr.intensity,
+          name: curr.added, //Change to curr.published
+        });
+      } else {
+        acc.push({
+          name: curr.pestle,
+          series: [
+            {
+              value: curr.intensity,
+              name: curr.added, //Change to curr.published
+            },
+          ],
+        });
+      }
+      return acc;
+    }, []);
+
+    console.log(groupedData);
     res.json(transformedData);
 
     // console.log(transformedData);
